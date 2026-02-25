@@ -14,7 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-import arso.productos.repositorio.Identificable;
+import repositorio.Identificable;
 
 @Entity
 //@Table (name = "producto")

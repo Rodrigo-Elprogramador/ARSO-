@@ -1,4 +1,4 @@
-package arso.usuarios.repositorio;
+package repositorio;
 
 public interface Identificable {
 

@@ -5,7 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import arso.productos.repositorio.Identificable;
+import repositorio.Identificable;
 
 /**
  * Versión simplificada de Usuario para el microservicio de Productos.
