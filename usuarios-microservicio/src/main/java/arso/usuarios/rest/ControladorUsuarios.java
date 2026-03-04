@@ -58,10 +58,20 @@ public class ControladorUsuarios {
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getUsuario(@PathParam("id") String id) throws Exception {
-		
-		Usuario usuario = servicio.getUsuario(id);
-		
-		return Response.status(Response.Status.OK).entity(usuario).build();
+	    Usuario usuario = servicio.getUsuario(id);
+	    
+	    if (usuario == null) {
+	        return Response.status(Response.Status.NOT_FOUND).build();
+	    }
+
+	    UsuarioDTO dto = new UsuarioDTO();
+	    dto.setNombre(usuario.getNombre());
+	    dto.setApellidos(usuario.getApellidos());
+	    dto.setEmail(usuario.getEmail());
+	    dto.setFechaNacimiento(usuario.getFecha_nacimiento().toString());
+	    dto.setTelefono(usuario.getTelefono());
+
+	    return Response.ok(dto).build();
 	}
 
 	// Modificar un Usuario
@@ -69,17 +79,21 @@ public class ControladorUsuarios {
 	@PUT
 	@Path("{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response modificarUsuario(@PathParam("id") String id, Usuario usuario) throws Exception {
-		
-		servicio.modificarUsuario(
-				id, 
-				usuario.getNombre(), 
-				usuario.getApellidos(), 
-				usuario.getEmail(), 
-				usuario.getClave(), 
-				usuario.getFecha_nacimiento(), 
-				usuario.getTelefono());
-		
-		return Response.status(Response.Status.NO_CONTENT).build();
+	public Response modificarUsuario(@PathParam("id") String id, UsuarioDTO dto) throws Exception {
+	    LocalDate fecha = null;
+	    if (dto.getFechaNacimiento() != null && !dto.getFechaNacimiento().isBlank()) {
+	        fecha = LocalDate.parse(dto.getFechaNacimiento());
+	    }
+
+	    servicio.modificarUsuario(
+	            id, 
+	            dto.getNombre(), 
+	            dto.getApellidos(), 
+	            dto.getEmail(), 
+	            dto.getClave(), 
+	            fecha, 
+	            dto.getTelefono());
+	    
+	    return Response.status(Response.Status.NO_CONTENT).build();
 	}
 }
