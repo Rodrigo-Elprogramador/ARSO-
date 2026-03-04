@@ -27,7 +27,7 @@ public class ServicioUsuario implements IServicioUsuario{
 		if(clave == null || clave.isBlank())
 			throw new IllegalArgumentException("clave: no debe ser nulo ni vacio o solo espacios en blanco");
 		
-		if(nacimiento == null || LocalDate.now().isBefore(nacimiento))
+		if(nacimiento == null || LocalDate.now().isAfter(LocalDate.now()))
 			throw new IllegalArgumentException("Fecha: no debe ser nulo ni anterior a la fecha actual");
 		if(repositorio.getInstanciaEmail(email))
 			throw new IllegalArgumentException("Ya existe una cuenta con este email");
@@ -77,4 +77,11 @@ public class ServicioUsuario implements IServicioUsuario{
 		Usuario user = repositorio.getByIdentificación(email, clave);
 		return user;
 	}
+
+	@Override
+	public Usuario getUsuario(String id) throws EntidadNoEncontrada, RepositorioException {
+		return repositorio.getById(id);
+	}
+	
+	
 }

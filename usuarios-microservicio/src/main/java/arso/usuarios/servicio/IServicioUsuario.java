@@ -13,4 +13,6 @@ public interface IServicioUsuario {
 	public void	modificarUsuario(String identificador, String nombre, String apellidos, String email, String clave, LocalDate nacimiento, String telefono) throws RepositorioException, EntidadNoEncontrada;
 
 	public Usuario comprobarUsuario(String email, String clave) throws EntidadNoEncontrada, RepositorioException;
+	
+	public Usuario getUsuario(String id) throws EntidadNoEncontrada, RepositorioException;
 }
