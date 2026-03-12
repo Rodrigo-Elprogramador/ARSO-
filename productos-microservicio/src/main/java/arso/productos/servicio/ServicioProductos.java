@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import repositorio.EntidadNoEncontrada;
 import repositorio.FactoriaRepositorios;
 import repositorio.Repositorio;
@@ -16,7 +19,9 @@ import arso.productos.modelo.ProductoDTO;
 import arso.productos.modelo.UsuarioResumen;
 import arso.productos.repositorio.RepositorioProductoAdHoc;
 
-public class ServicioProductos implements IServicioProductos{
+@Service
+@Transactional
+public class ServicioProductos implements IServicioProductos {
 	
 	private RepositorioProductoAdHoc repositorio = FactoriaRepositorios.getRepositorio(Producto.class);
 

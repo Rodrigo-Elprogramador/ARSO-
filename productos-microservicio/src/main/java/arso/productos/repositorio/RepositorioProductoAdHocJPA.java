@@ -8,8 +8,6 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
-import org.eclipse.persistence.config.HintValues;
-import org.eclipse.persistence.config.QueryHints;
 
 import repositorio.RepositorioException;
 import arso.productos.modelo.Estado;
@@ -33,14 +31,12 @@ public class RepositorioProductoAdHocJPA extends RepositorioProductoJPA implemen
 			
 			query.setParameter("inicioMes", inicioMes);
 		    query.setParameter("finMes", finMes);
-			query.setHint(QueryHints.REFRESH, HintValues.TRUE);
+			
 			
 			return query.getResultList();
 		} catch (RuntimeException e) {
 			throw new RepositorioException("Error buscando by sin votos", e);
-		} finally {
-			EntityManagerHelper.closeEntityManager();
-		}
+		} 
 			
 	}
 	
@@ -80,14 +76,11 @@ public class RepositorioProductoAdHocJPA extends RepositorioProductoJPA implemen
 		        query.setParameter(entry.getKey(), entry.getValue());
 		    }
 		    
-			query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 
 			return query.getResultList();
 		} catch (RuntimeException e) {
 			throw new RepositorioException("Error buscando by sin votos", e);
-		} finally {
-			EntityManagerHelper.closeEntityManager();
-		}
+		} 
 	}
 	
 	@Override
@@ -101,14 +94,11 @@ public class RepositorioProductoAdHocJPA extends RepositorioProductoJPA implemen
 			TypedQuery<Producto> query = em.createQuery(queryString, Producto.class);
 			
 			query.setParameter("idVendedor", idVendedor);
-			query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 			
 			return query.getResultList();
 		} catch (RuntimeException e) {
 			throw new RepositorioException("Error buscando by sin votos", e);
-		} finally {
-			EntityManagerHelper.closeEntityManager();
-		}
+		} 
 	}
 	
 	
@@ -123,14 +113,11 @@ public class RepositorioProductoAdHocJPA extends RepositorioProductoJPA implemen
 			TypedQuery<Producto> query = em.createQuery(queryString, Producto.class);
 			
 			query.setParameter("idCategoria", idCategoria);
-			query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 			
 			return query.getResultList();
 		} catch (RuntimeException e) {
 			throw new RepositorioException("Error buscando by sin votos", e);
-		} finally {
-			EntityManagerHelper.closeEntityManager();
-		}
+		} 
 	}
 
 }

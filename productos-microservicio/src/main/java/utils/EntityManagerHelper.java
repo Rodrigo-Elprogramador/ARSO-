@@ -1,49 +1,25 @@
 package utils;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import javax.persistence.PersistenceContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class EntityManagerHelper {
-	private static EntityManagerFactory entityManagerFactory;
 
-	private static final ThreadLocal<EntityManager> entityManagerHolder;
+    private static EntityManager entityManager;
 
-	static {
+    @PersistenceContext
+    public void setEntityManager(EntityManager em) {
+        EntityManagerHelper.entityManager = em;
+    }
 
-		entityManagerFactory = Persistence.createEntityManagerFactory("segundumdb");
+    public static EntityManager getEntityManager() {
+        return entityManager;
+    }
 
-		entityManagerHolder = new ThreadLocal<EntityManager>();
-
-	}
-
-	public static EntityManager getEntityManager() {
-
-		EntityManager entityManager = entityManagerHolder.get();
-
-		if (entityManager == null || !entityManager.isOpen()) {
-
-			entityManager = entityManagerFactory.createEntityManager();
-
-			entityManagerHolder.set(entityManager);
-
-		}
-
-		return entityManager;
-
-	}
-
-	public static void closeEntityManager() {
-
-		EntityManager entityManager = entityManagerHolder.get();
-
-		if (entityManager != null) {
-
-			entityManagerHolder.set(null);
-
-			entityManager.close();
-
-		}
-
-	}	
+    public static void closeEntityManager() {
+        // En Spring Boot con @Transactional no es necesario cerrar manualmente
+        // El contenedor gestiona el ciclo de vida del EntityManager
+    }
 }
