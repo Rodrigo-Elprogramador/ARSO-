@@ -8,6 +8,7 @@ import repositorio.RepositorioString;
 import arso.productos.modelo.Estado;
 import arso.productos.modelo.Producto;
 
+
 public interface RepositorioProductoAdHoc extends RepositorioString<Producto> {
 
 	public List<Producto> getByMonthYear(int month, int year) throws RepositorioException;
