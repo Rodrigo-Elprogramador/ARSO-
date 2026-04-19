@@ -1,6 +1,7 @@
 package arso.usuarios.servicio;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import repositorio.EntidadNoEncontrada;
 import repositorio.FactoriaRepositorios;
@@ -81,6 +82,12 @@ public class ServicioUsuario implements IServicioUsuario{
 	@Override
 	public Usuario getUsuario(String id) throws EntidadNoEncontrada, RepositorioException {
 		return repositorio.getById(id);
+	}
+	
+	//TAREA 5
+	@Override
+	public List<Usuario> listarUsuarios() throws RepositorioException {
+	    return repositorio.getAll();
 	}
 	
 	

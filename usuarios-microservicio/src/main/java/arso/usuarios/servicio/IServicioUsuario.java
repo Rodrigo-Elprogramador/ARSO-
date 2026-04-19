@@ -1,6 +1,7 @@
 package arso.usuarios.servicio;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import repositorio.EntidadNoEncontrada;
 import repositorio.RepositorioException;
@@ -15,4 +16,7 @@ public interface IServicioUsuario {
 	public Usuario comprobarUsuario(String email, String clave) throws EntidadNoEncontrada, RepositorioException;
 	
 	public Usuario getUsuario(String id) throws EntidadNoEncontrada, RepositorioException;
+	
+	//TAREA 5
+	public List<Usuario> listarUsuarios() throws RepositorioException;
 }
