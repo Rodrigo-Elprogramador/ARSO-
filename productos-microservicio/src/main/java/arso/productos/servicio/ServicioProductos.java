@@ -4,12 +4,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import repositorio.EntidadNoEncontrada;
-import repositorio.FactoriaRepositorios;
-import repositorio.Repositorio;
 import repositorio.RepositorioException;
 import arso.productos.modelo.Categoria;
 import arso.productos.modelo.Estado;
@@ -17,17 +16,23 @@ import arso.productos.modelo.LugarRecogida;
 import arso.productos.modelo.Producto;
 import arso.productos.modelo.ProductoDTO;
 import arso.productos.modelo.UsuarioResumen;
-import arso.productos.repositorio.RepositorioProductoAdHoc;
+import arso.productos.repositorio.RepositorioCategorias;
+import arso.productos.repositorio.RepositorioProductos;
+import arso.productos.repositorio.RepositorioUsuariosResumen;
 
 @Service
 @Transactional
 public class ServicioProductos implements IServicioProductos {
 	
-	private RepositorioProductoAdHoc repositorio = FactoriaRepositorios.getRepositorio(Producto.class);
+	@Autowired
+	private RepositorioProductos repositorio;
 
-	private Repositorio<Categoria, String> repositorioCategoria = FactoriaRepositorios.getRepositorio(Categoria.class);
+	@Autowired
+	private RepositorioCategorias repositorioCategoria;
 
-	private Repositorio<UsuarioResumen, String> repositorioUsuario = FactoriaRepositorios.getRepositorio(UsuarioResumen.class);
+	@Autowired
+	private RepositorioUsuariosResumen repositorioUsuario;
+
 
 	@Override
 	public String altaProducto(String titulo, String descripcion, double precio, Estado estado, String idCategoria, boolean disponible, String idVendedor) throws RepositorioException, EntidadNoEncontrada{
@@ -44,38 +49,36 @@ public class ServicioProductos implements IServicioProductos {
 		if(idCategoria == null || idCategoria.isEmpty())
 			throw new IllegalArgumentException("idCategoria: no debe ser nulo o vacio");
 		
-		UsuarioResumen vendedor = repositorioUsuario.getById(idVendedor);
+		UsuarioResumen vendedor = repositorioUsuario.findById(idVendedor).orElseThrow(() -> new EntidadNoEncontrada("Vendedor no encontrado id: "+ idVendedor));
 		
-		Categoria categoria = repositorioCategoria.getById(idCategoria);
+		Categoria categoria = repositorioCategoria.findById(idCategoria).orElseThrow(() -> new EntidadNoEncontrada("Categoría no encontrada id: "+ idCategoria));
 		
 		LocalDateTime fecha = LocalDateTime.now();
 		
 		Producto producto = new Producto(titulo, descripcion, precio, estado, fecha, categoria, 0, disponible, null, vendedor);
 		
-		String idProducto = repositorio.add(producto);
+		Producto guardado = repositorio.save(producto);
 		
-		return idProducto;
-		
-
+		return guardado.getId();
 
 	}
+	
 	@Override
 	public void asignarPuntoRecogida(String id, double longitud, double latitud, String descripcion) throws RepositorioException, EntidadNoEncontrada{
 		
 		if(id == null || id.isBlank())
 			throw new IllegalArgumentException("identificador: no debe ser nulo ni vacio o solo espacios en blanco");
-		
-		Producto producto = repositorio.getById(id);
-		
 		if(descripcion == null || descripcion.isEmpty())
 			throw new IllegalArgumentException("descripcion: no debe ser nulo ni vacio");
 		if(longitud < 0.0)
 			throw new IllegalArgumentException("longitud: no debe ser menor a 0.0");
 		
+		Producto producto = repositorio.findById(id).orElseThrow(() -> new EntidadNoEncontrada("Producto no encontrado"));
+		
 		LugarRecogida lugar = new LugarRecogida(descripcion, longitud, latitud);
 		producto.setRecogida(lugar);
 		
-		repositorio.update(producto);
+		repositorio.save(producto);
 		
 	}
 	
@@ -92,7 +95,7 @@ public class ServicioProductos implements IServicioProductos {
 		if(id == null || id.isBlank())
 			throw new IllegalArgumentException("identificador: no debe ser nulo ni vacio o solo espacios en blanco");
 		
-		Producto producto = repositorio.getById(id);
+		Producto producto = repositorio.findById(id).orElseThrow(() -> new EntidadNoEncontrada("Producto no encontrado"));
 		boolean actualizar = false;
 		if(descripcion != null && !descripcion.isEmpty())
 			producto.setDescripcion(descripcion);
@@ -101,7 +104,7 @@ public class ServicioProductos implements IServicioProductos {
 			producto.setPrecio(precio);
 			actualizar = true;
 		if(actualizar) {
-			repositorio.update(producto);
+			repositorio.save(producto);
 			System.out.println("Se ha modificado el producto: " + producto.getDescripcion());
 		}
 	}
@@ -111,11 +114,11 @@ public class ServicioProductos implements IServicioProductos {
 		if(id == null || id.isBlank())
 			throw new IllegalArgumentException("identificador: no debe ser nulo ni vacio o solo espacios en blanco");
 		
-		Producto producto = repositorio.getById(id);
+		Producto producto = repositorio.findById(id).orElseThrow(() -> new EntidadNoEncontrada("Producto no encontrado"));
 		
 		producto.setIncremento();
 		
-		repositorio.update(producto);
+		repositorio.save(producto);
 	}
 	
 	@Override
