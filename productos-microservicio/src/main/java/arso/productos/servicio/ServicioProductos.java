@@ -1,12 +1,12 @@
 package arso.productos.servicio;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import repositorio.EntidadNoEncontrada;
 import repositorio.RepositorioException;
@@ -84,9 +84,12 @@ public class ServicioProductos implements IServicioProductos {
 	
 
 	@Override
-	public void recuperarProducto(String id) {
-		// TODO Auto-generated method stub
-		
+	public Producto recuperarProducto(String id) throws RepositorioException, EntidadNoEncontrada {
+	    if (id == null || id.isBlank()) {
+	        throw new IllegalArgumentException("El identificador no puede ser nulo o vacío");
+	    }
+
+	    return repositorio.findById(id).orElseThrow(() -> new EntidadNoEncontrada("Producto no encontrado id: " + id));
 	}
 	
 	@Override
@@ -122,23 +125,33 @@ public class ServicioProductos implements IServicioProductos {
 	}
 	
 	@Override
-	public List<Producto> historialMes(int mes, int year) throws RepositorioException, EntidadNoEncontrada{
-		if(mes<0 || mes>12)
-			throw new IllegalArgumentException("mes: Debe de ser un valor entre 1 y 12");
-		if(year<0 || year >2026)
-			throw new IllegalArgumentException("year: Debe de ser un valor entre 1 y 2026");
-		return repositorio.getByMonthYear(mes, year);
+	public Page<ProductoDTO> historialMes(int mes, int year, Pageable pageable) throws RepositorioException, EntidadNoEncontrada{
+	    if(mes < 1 || mes > 12)
+	        throw new IllegalArgumentException("mes: Debe de ser un valor entre 1 y 12");
+	    if(year < 0 || year > 2026)
+	        throw new IllegalArgumentException("year: Debe de ser un valor entre 1 y 2026");
+	    
+	    Page<Producto> paginaEntidades = repositorio.getByMonthYear(mes, year, pageable);
+	    
+	    return paginaEntidades.map(this::transformToDTO);
 	}
 
 	@Override
-	public List<ProductoDTO> buscarProductos(String categoria, String descripcion, Estado estado, double precioMaximo) throws RepositorioException, EntidadNoEncontrada{
-		//No se hace control de parametros ya que se realiza en el repositorio antes de hacer la petición
-		return repositorio.getByFiltrado(categoria, descripcion, estado, precioMaximo).stream().map(this::transformToDTO).collect(Collectors.toList());
+	public Page<ProductoDTO> buscarProductos(String categoria, String descripcion, Estado estado, double precioMaximo, Pageable pageable) throws RepositorioException, EntidadNoEncontrada {
+	    Page<Producto> productosFiltrados = repositorio.getByFiltrado(categoria, descripcion, estado, precioMaximo, pageable);
+	    
+	    return productosFiltrados.map(this::transformToDTO);
 	}
-	
-	
+
 	private ProductoDTO transformToDTO(Producto producto) {
-		ProductoDTO productoDTO = new ProductoDTO(producto.getId(), producto.getTitulo(), producto.getPrecio(), producto.getEstado(), producto.getFechaPublicacion(), producto.getCategoria().getNombre(), producto.getVisualizaciones());
-		return productoDTO;
+	    return new ProductoDTO(
+	        producto.getId(), 
+	        producto.getTitulo(), 
+	        producto.getPrecio(), 
+	        producto.getEstado(), 
+	        producto.getFechaPublicacion(), 
+	        producto.getCategoria() != null ? producto.getCategoria().getNombre() : null, 
+	        producto.getVisualizaciones()
+	    );
 	}
 }
