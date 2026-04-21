@@ -3,6 +3,7 @@ package arso.usuarios.rest;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -55,14 +56,12 @@ public class ControladorUsuarios {
     @RolesAllowed("USUARIO")
     public Response getUsuario(@PathParam("id") String id) throws Exception {
         Usuario usuario = servicio.getUsuario(id);
-        if (usuario == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
+
         UsuarioDTO dto = new UsuarioDTO();
         dto.setNombre(usuario.getNombre());
         dto.setApellidos(usuario.getApellidos());
         dto.setEmail(usuario.getEmail());
-        dto.setFechaNacimiento(usuario.getFecha_nacimiento().toString());
+        dto.setFechaNacimiento(usuario.getFecha_nacimiento() != null ? usuario.getFecha_nacimiento().toString() : null);
         dto.setTelefono(usuario.getTelefono());
         return Response.ok(dto).build();
     }
@@ -76,7 +75,18 @@ public class ControladorUsuarios {
     @RolesAllowed("USUARIO")
     public Response listarUsuarios() throws Exception {
         List<Usuario> usuarios = servicio.listarUsuarios();
-        return Response.ok(usuarios).build();
+        
+        List<UsuarioResumenDTO> resumen = usuarios.stream().map(u -> {
+            UsuarioResumenDTO dto = new UsuarioResumenDTO();
+            dto.setId(u.getId());
+            dto.setNombre(u.getNombre() + " " + u.getApellidos());
+            // Generamos la URL de este usuario
+            String url = uriInfo.getAbsolutePathBuilder().path(u.getId()).build().toString();
+            dto.setUrl(url);
+            return dto;
+        }).collect(Collectors.toList());
+
+        return Response.ok(resumen).build();
     }
 
     // -----------------------------------------------
@@ -94,8 +104,7 @@ public class ControladorUsuarios {
         String usuarioAutenticadoId = claims.getSubject(); // "sub" = id del usuario
 
         if (!usuarioAutenticadoId.equals(id)) {
-            return Response.status(Response.Status.FORBIDDEN)
-                    .entity("No puede modificar datos de otro usuario").build();
+        	throw new ForbiddenException("No puede modificar datos de otro usuario");
         }
 
         LocalDate fecha = null;
