@@ -115,4 +115,15 @@ public class ControladorUsuarios {
                 dto.getEmail(), dto.getClave(), fecha, dto.getTelefono());
         return Response.status(Response.Status.NO_CONTENT).build();
     }
+    
+    //TAREA 6 parte 2
+    @GET
+    @Path("/{id}/nombre")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll //para compraventas
+    public Response getNombreUsuario(@PathParam("id") String id) throws Exception {
+        Usuario usuario = servicio.getUsuario(id);   
+        return Response.ok("{\"nombre\": \"" + usuario.getNombre() + "\"}").build();
+    }
+    
 }

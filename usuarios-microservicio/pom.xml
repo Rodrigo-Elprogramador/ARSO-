@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>arso.usuarios</groupId>
-	<artifactId>usuarios-microservicios</artifactId>
+	<artifactId>usuarios-microservicio</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
 
