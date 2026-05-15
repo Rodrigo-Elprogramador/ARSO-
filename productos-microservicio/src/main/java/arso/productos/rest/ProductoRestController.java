@@ -18,6 +18,13 @@ import arso.productos.modelo.ProductoAltaDTO;
 import arso.productos.modelo.ProductoDTO;
 import arso.productos.servicio.IServicioProductos;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
+import arso.productos.modelo.Categoria;
+import arso.productos.modelo.CategoriaDTO;
+
 @RestController
 @RequestMapping("/api/productos")
 public class ProductoRestController implements ProductosApi {
@@ -36,15 +43,53 @@ public class ProductoRestController implements ProductosApi {
 	}
 
 	@Override
+	@GetMapping("/categorias")
+	public ResponseEntity<List<CategoriaDTO>> getCategoriasRaiz() throws Exception {
+		List<Categoria> raiz = this.servicio.getCategoriasRaiz();
+		return ResponseEntity.ok(raiz.stream()
+				.map(c -> new CategoriaDTO(c.getId(), c.getNombre(), c.getDescripcion()))
+				.collect(Collectors.toList()));
+	}
+
+	@Override
+	@GetMapping("/categorias/{id}/descendientes")
+	public ResponseEntity<List<CategoriaDTO>> getSubcategorias(@PathVariable String id) throws Exception {
+		List<Categoria> subs = this.servicio.getSubcategorias(id);
+		return ResponseEntity.ok(subs.stream()
+				.map(c -> new CategoriaDTO(c.getId(), c.getNombre(), c.getDescripcion()))
+				.collect(Collectors.toList()));
+	}
+
+	@Override
 	@PostMapping
 	public ResponseEntity<Void> altaProducto(@Valid @RequestBody ProductoAltaDTO dto) throws Exception {
+		String usuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+		if (!dto.getIdVendedor().equals(usuarioAutenticado)) {
+			throw new AccessDeniedException("Solo el propietario puede dar de alta el producto");
+		}
 
 		String id = this.servicio.altaProducto(dto.getTitulo(), dto.getDescripcion(), dto.getPrecio(), dto.getEstado(),
-				dto.getIdCategoria(), dto.isDisponible(), dto.getIdVendedor());
+				dto.getIdCategoria(), dto.isDisponible(), usuarioAutenticado);
 
 		URI nuevaURL = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
 
 		return ResponseEntity.created(nuevaURL).build();
+	}
+
+	@Override
+	@PutMapping("/{id}/recogida")
+	public ResponseEntity<Void> asignarPuntoRecogida(@PathVariable String id, @RequestParam double longitud, @RequestParam double latitud, @RequestParam String descripcion) throws Exception {
+		checkPropiedad(id);
+		this.servicio.asignarPuntoRecogida(id, longitud, latitud, descripcion);
+		return ResponseEntity.noContent().build();
+	}
+
+	@Override
+	@PutMapping("/{id}")
+	public ResponseEntity<Void> modificarProducto(@PathVariable String id, @RequestParam(required = false) Double precio, @RequestParam(required = false) String descripcion) throws Exception {
+		checkPropiedad(id);
+		this.servicio.modificarProducto(id, precio != null ? precio : 0.0, descripcion);
+		return ResponseEntity.noContent().build();
 	}
 
 	@Override
@@ -98,5 +143,13 @@ public class ProductoRestController implements ProductosApi {
 	public ResponseEntity<Void> addVisualizacion(@PathVariable String id) throws Exception {
 		this.servicio.addVisualizacion(id);
 		return ResponseEntity.noContent().build();
+	}
+
+	private void checkPropiedad(String idProducto) throws Exception {
+		String usuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+		Producto producto = this.servicio.recuperarProducto(idProducto);
+		if (producto.getVendedor() == null || !producto.getVendedor().getId().equals(usuarioAutenticado)) {
+			throw new AccessDeniedException("No es el propietario del producto");
+		}
 	}
 }

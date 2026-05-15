@@ -1,6 +1,7 @@
 package arso.productos.servicio;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,19 @@ public class ServicioProductos implements IServicioProductos, IEventosCompravent
 
 	@Autowired
 	private RepositorioUsuariosResumen repositorioUsuario;
+
+	// CATEGORIAS
+	@Override
+	public List<Categoria> getCategoriasRaiz() throws RepositorioException {
+		return repositorioCategoria.findByCategoriaPadreIsNull();
+	}
+
+	@Override
+	public List<Categoria> getSubcategorias(String id) throws RepositorioException, EntidadNoEncontrada {
+		Categoria padre = repositorioCategoria.findById(id)
+				.orElseThrow(() -> new EntidadNoEncontrada("Categoría no encontrada id: " + id));
+		return repositorioCategoria.findByCategoriaPadre(padre);
+	}
 
 	//TAREA 7
 	@Override

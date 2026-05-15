@@ -15,6 +15,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import arso.compraventas.modelo.Compraventa;
 import arso.compraventas.servicio.IServicioCompraventas;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
+
 @RestController
 @RequestMapping("/api/compraventas")
 public class CompraventaRestController implements CompraventasApi {
@@ -34,6 +37,11 @@ public class CompraventaRestController implements CompraventasApi {
 
 	@Override
 	public ResponseEntity<Void> comprar(@Valid @RequestBody CompraventaAltaDTO dto) throws Exception {
+		String usuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+		if (!dto.getIdComprador().equals(usuarioAutenticado)) {
+			throw new AccessDeniedException("Solo el propio usuario puede realizar la compra");
+		}
+
 		String id = servicio.realizarCompraventa(dto.getIdProducto(), dto.getIdComprador());
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
 		return ResponseEntity.created(location).build();
@@ -43,6 +51,15 @@ public class CompraventaRestController implements CompraventasApi {
 	@GetMapping("/{id}")
 	public ResponseEntity<EntityModel<CompraventaDTO>> getCompraventa(@PathVariable String id) throws Exception {
 		Compraventa cv = servicio.recuperarCompraventa(id);
+
+		String usuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+		boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+				.anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
+		
+		if (!isAdmin && !cv.getIdComprador().equals(usuarioAutenticado) && !cv.getIdVendedor().equals(usuarioAutenticado)) {
+			throw new AccessDeniedException("No tiene permiso para ver esta compraventa");
+		}
+
 		CompraventaDTO dto = transformToDTO(cv);
 		return ResponseEntity.ok(assembler.toModel(dto));
 	}
@@ -50,6 +67,11 @@ public class CompraventaRestController implements CompraventasApi {
 	@Override
 	@GetMapping("/compras/{idUsuario}")
 	public ResponseEntity<PagedModel<EntityModel<CompraventaDTO>>> getCompras(@PathVariable String idUsuario, Pageable pageable) {
+		String usuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+		if (!idUsuario.equals(usuarioAutenticado)) {
+			throw new AccessDeniedException("No puede consultar compras de otro usuario");
+		}
+
 		Page<Compraventa> pagina = servicio.recuperarComprasUsuario(idUsuario, pageable);
 		Page<CompraventaDTO> paginaDTO = pagina.map(this::transformToDTO);
 		return ResponseEntity.ok(pagedResourcesAssembler.toModel(paginaDTO, assembler));
@@ -58,6 +80,11 @@ public class CompraventaRestController implements CompraventasApi {
 	@Override
 	@GetMapping("/ventas/{idUsuario}")
 	public ResponseEntity<PagedModel<EntityModel<CompraventaDTO>>> getVentas(@PathVariable String idUsuario, Pageable pageable) {
+		String usuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+		if (!idUsuario.equals(usuarioAutenticado)) {
+			throw new AccessDeniedException("No puede consultar ventas de otro usuario");
+		}
+
 		Page<Compraventa> pagina = servicio.recuperarVentasUsuario(idUsuario, pageable);
 		Page<CompraventaDTO> paginaDTO = pagina.map(this::transformToDTO);
 		return ResponseEntity.ok(pagedResourcesAssembler.toModel(paginaDTO, assembler));
@@ -69,6 +96,12 @@ public class CompraventaRestController implements CompraventasApi {
 			@RequestParam String idComprador, 
 			@RequestParam String idVendedor, 
 			Pageable pageable) {
+		boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+				.anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
+		if (!isAdmin) {
+			throw new AccessDeniedException("Solo un administrador puede consultar compraventas entre usuarios");
+		}
+
 		Page<Compraventa> pagina = servicio.recuperarTransacciones(idComprador, idVendedor, pageable);
 		Page<CompraventaDTO> paginaDTO = pagina.map(this::transformToDTO);
 		return ResponseEntity.ok(pagedResourcesAssembler.toModel(paginaDTO, assembler));

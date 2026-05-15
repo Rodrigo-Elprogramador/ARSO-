@@ -8,8 +8,19 @@ import java.util.stream.Collectors;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import arso.usuarios.modelo.Usuario;
 import arso.usuarios.servicio.IServicioUsuario;
@@ -27,10 +38,6 @@ public class ControladorUsuarios {
     @Context
     private HttpServletRequest request;
 
-    // -----------------------------------------------
-    // Alta de usuario: PÚBLICA (@PermitAll)
-    // POST http://localhost:8080/api/usuarios
-    // -----------------------------------------------
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @PermitAll
@@ -41,15 +48,11 @@ public class ControladorUsuarios {
         }
         String id = servicio.altaUsuario(
                 dto.getNombre(), dto.getApellidos(), dto.getEmail(),
-                dto.getClave(), fechaParsed, dto.getTelefono());
+                dto.getClave(), fechaParsed, dto.getTelefono(), dto.getGithubId());
         URI nuevaURL = uriInfo.getAbsolutePathBuilder().path(id).build();
         return Response.created(nuevaURL).build();
     }
 
-    // -----------------------------------------------
-    // Recuperación de usuario: autenticado
-    // GET http://localhost:8080/api/usuarios/{id}
-    // -----------------------------------------------
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -63,13 +66,10 @@ public class ControladorUsuarios {
         dto.setEmail(usuario.getEmail());
         dto.setFechaNacimiento(usuario.getFecha_nacimiento() != null ? usuario.getFecha_nacimiento().toString() : null);
         dto.setTelefono(usuario.getTelefono());
+        dto.setGithubId(usuario.getGithubId());
         return Response.ok(dto).build();
     }
 
-    // -----------------------------------------------
-    // Listado de usuarios: autenticado
-    // GET http://localhost:8080/api/usuarios
-    // -----------------------------------------------
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed("USUARIO")
@@ -80,7 +80,6 @@ public class ControladorUsuarios {
             UsuarioResumenDTO dto = new UsuarioResumenDTO();
             dto.setId(u.getId());
             dto.setNombre(u.getNombre() + " " + u.getApellidos());
-            // Generamos la URL de este usuario
             String url = uriInfo.getAbsolutePathBuilder().path(u.getId()).build().toString();
             dto.setUrl(url);
             return dto;
@@ -89,19 +88,13 @@ public class ControladorUsuarios {
         return Response.ok(resumen).build();
     }
 
-    // -----------------------------------------------
-    // Modificar usuario: autenticado + solo el propio usuario
-    // PUT http://localhost:8080/api/usuarios/{id}
-    // -----------------------------------------------
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @RolesAllowed("USUARIO")
     public Response modificarUsuario(@PathParam("id") String id, UsuarioDTO dto) throws Exception {
-        
-        // Control: solo el usuario autenticado puede modificar sus propios datos
         Claims claims = (Claims) request.getAttribute("claims");
-        String usuarioAutenticadoId = claims.getSubject(); // "sub" = id del usuario
+        String usuarioAutenticadoId = claims.getSubject();
 
         if (!usuarioAutenticadoId.equals(id)) {
         	throw new ForbiddenException("No puede modificar datos de otro usuario");
@@ -112,18 +105,50 @@ public class ControladorUsuarios {
             fecha = LocalDate.parse(dto.getFechaNacimiento());
         }
         servicio.modificarUsuario(id, dto.getNombre(), dto.getApellidos(),
-                dto.getEmail(), dto.getClave(), fecha, dto.getTelefono());
+                dto.getEmail(), dto.getClave(), fecha, dto.getTelefono(), dto.getGithubId());
         return Response.status(Response.Status.NO_CONTENT).build();
     }
     
-    //TAREA 6 parte 2
     @GET
     @Path("/{id}/nombre")
     @Produces(MediaType.APPLICATION_JSON)
-    @PermitAll //para compraventas
+    @PermitAll
     public Response getNombreUsuario(@PathParam("id") String id) throws Exception {
-        Usuario usuario = servicio.getUsuario(id);   
+        Usuario usuario = servicio.getUsuario(id);
         return Response.ok("{\"nombre\": \"" + usuario.getNombre() + "\"}").build();
     }
     
+    @GET
+    @Path("/verificar")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    public Response verificarCredenciales(@QueryParam("email") String email, @QueryParam("password") String password) throws Exception {
+        try {
+            Usuario usuario = servicio.comprobarUsuario(email, password);
+            return Response.ok(transformToMap(usuario)).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+    }
+
+    @GET
+    @Path("/github/{githubId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PermitAll
+    public Response getUsuarioByGithubId(@PathParam("githubId") String githubId) throws Exception {
+        try {
+            Usuario usuario = servicio.getUsuarioByGithubId(githubId);
+            return Response.ok(transformToMap(usuario)).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+
+    private java.util.Map<String, Object> transformToMap(Usuario usuario) {
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        map.put("id", usuario.getId());
+        map.put("nombre", usuario.getNombre() + " " + usuario.getApellidos());
+        map.put("roles", usuario.isAdministrador() ? new String[]{"USUARIO", "ADMINISTRADOR"} : new String[]{"USUARIO"});
+        return map;
+    }
 }

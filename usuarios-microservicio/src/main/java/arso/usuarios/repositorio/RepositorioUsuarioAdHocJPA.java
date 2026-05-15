@@ -54,4 +54,23 @@ public class RepositorioUsuarioAdHocJPA extends RepositorioUsuarioJPA implements
 			EntityManagerHelper.closeEntityManager();
 		}
 	}
+
+	@Override
+	public Usuario getByGithubId(String githubId) throws RepositorioException, EntidadNoEncontrada {
+		try {
+			EntityManager em = EntityManagerHelper.getEntityManager();
+
+			String queryString = "SELECT e FROM Usuario e WHERE e.githubId = :githubId";
+			TypedQuery<Usuario> query = em.createQuery(queryString, Usuario.class);
+			query.setParameter("githubId", githubId);
+
+			return query.getSingleResult();
+		} catch (javax.persistence.NoResultException e) {
+			throw new EntidadNoEncontrada("Usuario con githubId " + githubId + " no encontrado");
+		} catch (RuntimeException e) {
+			throw new RepositorioException("Error buscando Usuario por githubId", e);
+		} finally {
+			EntityManagerHelper.closeEntityManager();
+		}
+	}
 }

@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+zuul:
+  routes:
+    usuarios:
+      path: /api/usuarios/**
+      url: http://localhost:8081/api/usuarios
+    productos:
+      path: /api/productos/**
+      url: http://localhost:8082/api/productos
+    compraventas:
+      path: /api/compraventas/**
+      url: http://localhost:8083/api/compraventas
+  sensitive-headers: ""
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            clientId: ${GITHUB_CLIENT_ID:}
+            clientSecret: ${GITHUB_CLIENT_SECRET:}
+
+jwt:
+  secret: clave
+
+usuarios:
+  base-url: ${USUARIOS_BASE_URL:http://localhost:8081/api/}

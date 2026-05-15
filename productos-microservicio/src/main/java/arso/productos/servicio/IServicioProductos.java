@@ -5,10 +5,16 @@ import repositorio.RepositorioException;
 import arso.productos.modelo.Estado;
 import arso.productos.modelo.Producto;
 import arso.productos.modelo.ProductoDTO;
+import arso.productos.modelo.Categoria;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface IServicioProductos {
+	
+	public List<Categoria> getCategoriasRaiz() throws RepositorioException;
+	
+	public List<Categoria> getSubcategorias(String id) throws RepositorioException, EntidadNoEncontrada;
 	
 	public String altaProducto(String titulo, String descripcion, double precio, Estado estado, String idCategoria, boolean disponible, String idVendedor) throws RepositorioException, EntidadNoEncontrada;
 	

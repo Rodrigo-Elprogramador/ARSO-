@@ -1,0 +1,6 @@
+pasarela\retrofit\UsuariosRestClient.class
+pasarela\PasarelaApplication.class
+pasarela\config\SecurityConfig.class
+pasarela\config\SecuritySuccessHandler.class
+pasarela\controller\AuthController.class
+pasarela\filter\JwtValidationFilter.class

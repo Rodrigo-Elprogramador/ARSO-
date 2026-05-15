@@ -27,6 +27,9 @@ public class Usuario implements Identificable{
 	private String telefono;
 	private boolean administrador;
 	
+	@Column(name = "github_id")
+	private String githubId;
+	
 	//TAREA 7
 	@Column(name = "contador_compras")
 	private int contadorCompras = 0;
@@ -116,6 +119,14 @@ public class Usuario implements Identificable{
 
 	public void setAdministrador(boolean administrador) {
 		this.administrador = administrador;
+	}
+
+	public String getGithubId() {
+		return githubId;
+	}
+
+	public void setGithubId(String githubId) {
+		this.githubId = githubId;
 	}
 
 	@Override

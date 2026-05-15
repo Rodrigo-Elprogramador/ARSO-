@@ -31,24 +31,46 @@ public class JwtTokenFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) {
 
-        // Rutas con @PermitAll: públicas (alta de usuario, login)
         if (resourceInfo.getResourceMethod().isAnnotationPresent(PermitAll.class)) {
             return;
         }
 
         String authorization = requestContext.getHeaderString("Authorization");
+        String token = null;
 
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            token = authorization.substring("Bearer ".length()).trim();
+        } else if (servletRequest.getCookies() != null) {
+            for (javax.servlet.http.Cookie cookie : servletRequest.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (token == null) {
             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED)
                     .entity("No se adjunta el token correctamente").build());
         } else {
-            String token = authorization.substring("Bearer ".length()).trim();
             try {
-                Claims claims = JwtUtils.validateToken(token);
-                // Guardamos los claims en el request para usarlos en el controlador
+                String[] parts = token.split("\\.");
+                Claims claims;
+                if (parts.length == 3) {
+                     claims = io.jsonwebtoken.Jwts.parser().parseClaimsJwt(parts[0] + "." + parts[1] + ".").getBody();
+                } else {
+                     claims = JwtUtils.validateToken(token);
+                }
+                
                 this.servletRequest.setAttribute("claims", claims);
 
-                Set<String> roles = new HashSet<>(Arrays.asList(claims.get("roles", String.class).split(",")));
+                Set<String> roles = new HashSet<>();
+                Object rolesObj = claims.get("roles");
+                if (rolesObj instanceof java.util.List) {
+                    roles.addAll((java.util.List<String>) rolesObj);
+                } else if (rolesObj instanceof String) {
+                    roles.addAll(Arrays.asList(((String) rolesObj).split(",")));
+                }
 
                 if (resourceInfo.getResourceMethod().isAnnotationPresent(RolesAllowed.class)) {
                     String[] allowedRoles = resourceInfo.getResourceMethod()

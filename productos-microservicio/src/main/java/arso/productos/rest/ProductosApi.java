@@ -10,15 +10,33 @@ import org.springframework.web.bind.annotation.*;
 import arso.productos.modelo.Estado;
 import arso.productos.modelo.ProductoAltaDTO;
 import arso.productos.modelo.ProductoDTO;
+import arso.productos.modelo.CategoriaDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 
 @Tag(name = "Productos", description = "Operaciones sobre la gestión de productos de segunda mano")
 public interface ProductosApi {
 
+    @Operation(summary = "Recuperar categorías raíz", description = "Obtiene las categorías que no tienen padre.")
+    @GetMapping("/categorias")
+    ResponseEntity<List<CategoriaDTO>> getCategoriasRaiz() throws Exception;
+
+    @Operation(summary = "Recuperar descendientes de una categoría", description = "Obtiene las subcategorías de una categoría dada.")
+    @GetMapping("/categorias/{id}/descendientes")
+    ResponseEntity<List<CategoriaDTO>> getSubcategorias(@PathVariable String id) throws Exception;
+
     @Operation(summary = "Dar de alta un producto", description = "Registra un producto validando los datos de entrada.")
     @PostMapping
     ResponseEntity<Void> altaProducto(ProductoAltaDTO dto) throws Exception;
+
+    @Operation(summary = "Asignar lugar de recogida", description = "Asigna las coordenadas y descripción del lugar de recogida.")
+    @PutMapping("/{id}/recogida")
+    ResponseEntity<Void> asignarPuntoRecogida(@PathVariable String id, @RequestParam double longitud, @RequestParam double latitud, @RequestParam String descripcion) throws Exception;
+
+    @Operation(summary = "Modificar datos de un producto", description = "Permite modificar el precio y la descripción de un producto.")
+    @PutMapping("/{id}")
+    ResponseEntity<Void> modificarProducto(@PathVariable String id, @RequestParam(required = false) Double precio, @RequestParam(required = false) String descripcion) throws Exception;
 
     @Operation(summary = "Recuperar un producto", description = "Obtiene los detalles de un producto por su ID.")
     @GetMapping("/{id}")
