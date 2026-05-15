@@ -27,6 +27,19 @@ public class Usuario implements Identificable{
 	private String telefono;
 	private boolean administrador;
 	
+	//TAREA 7
+	@Column(name = "contador_compras")
+	private int contadorCompras = 0;
+
+	@Column(name = "contador_ventas")
+	private int contadorVentas = 0;
+
+	public int getContadorCompras() { return contadorCompras; }
+	public void setContadorCompras(int contadorCompras) { this.contadorCompras = contadorCompras; }
+	public int getContadorVentas() { return contadorVentas; }
+	public void setContadorVentas(int contadorVentas) { this.contadorVentas = contadorVentas; }
+	//
+	
 	public Usuario() {
 		
 	}

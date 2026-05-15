@@ -45,6 +45,13 @@ public class Producto implements Identificable{
 	@JoinColumn(name = "vendedor_id")
 	private UsuarioResumen vendedor;
 	
+	//TAREA 7
+	private boolean vendido = false;
+
+	public boolean isVendido() { return vendido; }
+	public void setVendido(boolean vendido) { this.vendido = vendido; }
+	//
+	
 	public Producto() {
 		
 	}

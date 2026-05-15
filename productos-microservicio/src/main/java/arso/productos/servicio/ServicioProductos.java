@@ -16,13 +16,14 @@ import arso.productos.modelo.LugarRecogida;
 import arso.productos.modelo.Producto;
 import arso.productos.modelo.ProductoDTO;
 import arso.productos.modelo.UsuarioResumen;
+import arso.productos.puertos.IEventosCompraventas;
 import arso.productos.repositorio.RepositorioCategorias;
 import arso.productos.repositorio.RepositorioProductos;
 import arso.productos.repositorio.RepositorioUsuariosResumen;
 
 @Service
 @Transactional
-public class ServicioProductos implements IServicioProductos {
+public class ServicioProductos implements IServicioProductos, IEventosCompraventas {
 	
 	@Autowired
 	private RepositorioProductos repositorio;
@@ -33,6 +34,15 @@ public class ServicioProductos implements IServicioProductos {
 	@Autowired
 	private RepositorioUsuariosResumen repositorioUsuario;
 
+	//TAREA 7
+	@Override
+	public void onCompraventaCreada(String idProducto) throws Exception {
+	    Producto producto = repositorio.findById(idProducto)
+	        .orElseThrow(() -> new EntidadNoEncontrada("Producto no encontrado: " + idProducto));
+	    producto.setVendido(true);
+	    repositorio.save(producto);
+	}
+	//
 
 	@Override
 	public String altaProducto(String titulo, String descripcion, double precio, Estado estado, String idCategoria, boolean disponible, String idVendedor) throws RepositorioException, EntidadNoEncontrada{

@@ -6,8 +6,9 @@ import java.util.List;
 import repositorio.EntidadNoEncontrada;
 import repositorio.RepositorioException;
 import arso.usuarios.modelo.Usuario;
+import arso.usuarios.puertos.IEventosCompraventas;
 
-public interface IServicioUsuario {
+public interface IServicioUsuario extends IEventosCompraventas {
 
 	public String altaUsuario(String nombre, String apellidos, String email, String clave, LocalDate naciemiento, String telefono) throws RepositorioException, EntidadNoEncontrada;
 
@@ -19,4 +20,6 @@ public interface IServicioUsuario {
 	
 	//TAREA 5
 	public List<Usuario> listarUsuarios() throws RepositorioException;
+	//TAREA 7
+	void onCompraventaCreada(String idVendedor, String idComprador) throws Exception;
 }

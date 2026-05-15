@@ -13,6 +13,18 @@ public class ServicioUsuario implements IServicioUsuario{
 	
 	private RepositorioUsuarioAdHocJPA repositorio = FactoriaRepositorios.getRepositorio(Usuario.class);
 
+	//TAREA 7
+	@Override
+	public void onCompraventaCreada(String idVendedor, String idComprador) throws Exception {
+	    Usuario vendedor = repositorio.getById(idVendedor);
+	    vendedor.setContadorVentas(vendedor.getContadorVentas() + 1);
+	    repositorio.update(vendedor);
+
+	    Usuario comprador = repositorio.getById(idComprador);
+	    comprador.setContadorCompras(comprador.getContadorCompras() + 1);
+	    repositorio.update(comprador);
+	}
+	//
 	@Override
 	public String altaUsuario(String nombre, String apellidos, String email, String clave, LocalDate nacimiento, String telefono) throws RepositorioException, EntidadNoEncontrada {
 		

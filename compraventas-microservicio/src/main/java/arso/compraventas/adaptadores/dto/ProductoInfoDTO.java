@@ -7,7 +7,13 @@ public class ProductoInfoDTO {
     private double precio;
     private String idVendedor;
     private String recogida;
-
+    
+    //TAREA 7
+    private boolean vendido;
+    public boolean isVendido() { return vendido; }
+    public void setVendido(boolean vendido) { this.vendido = vendido; }
+    //
+    
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
     public double getPrecio() { return precio; }
