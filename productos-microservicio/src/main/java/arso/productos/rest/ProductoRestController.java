@@ -100,8 +100,11 @@ public class ProductoRestController implements ProductosApi {
 
 		ProductoDTO dto = new ProductoDTO(producto.getId(), producto.getTitulo(), producto.getPrecio(),
 				producto.getEstado(), producto.getFechaPublicacion(),
-				producto.getCategoria() != null ? producto.getCategoria().getNombre() : null,
+				producto.getCategoria() != null ? producto.getCategoria().getId() : null,
 				producto.getVisualizaciones());
+		dto.setIdVendedor(producto.getVendedor() != null ? producto.getVendedor().getId() : null);
+		dto.setRecogida(producto.getRecogida() != null ? producto.getRecogida().getEspecificacion() : null);
+		dto.setVendido(producto.isVendido());
 
 		EntityModel<ProductoDTO> model = EntityModel.of(dto);
 		model.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ProductoRestController.class).getProducto(id))

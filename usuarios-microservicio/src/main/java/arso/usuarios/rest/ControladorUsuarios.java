@@ -43,7 +43,7 @@ public class ControladorUsuarios {
     @PermitAll
     public Response altaUsuario(UsuarioDTO dto) throws Exception {
         LocalDate fechaParsed = null;
-        if (dto.getFechaNacimiento() != null && !dto.getFechaNacimiento().isBlank()) {
+        if (!isBlank(dto.getFechaNacimiento())) {
             fechaParsed = LocalDate.parse(dto.getFechaNacimiento());
         }
         String id = servicio.altaUsuario(
@@ -101,7 +101,7 @@ public class ControladorUsuarios {
         }
 
         LocalDate fecha = null;
-        if (dto.getFechaNacimiento() != null && !dto.getFechaNacimiento().isBlank()) {
+        if (!isBlank(dto.getFechaNacimiento())) {
             fecha = LocalDate.parse(dto.getFechaNacimiento());
         }
         servicio.modificarUsuario(id, dto.getNombre(), dto.getApellidos(),
@@ -150,5 +150,9 @@ public class ControladorUsuarios {
         map.put("nombre", usuario.getNombre() + " " + usuario.getApellidos());
         map.put("roles", usuario.isAdministrador() ? new String[]{"USUARIO", "ADMINISTRADOR"} : new String[]{"USUARIO"});
         return map;
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }

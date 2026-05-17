@@ -9,7 +9,6 @@ import java.util.Map;
 
 public class ConsumidorEventosUsuarios {
 
-    private static final String HOST = "localhost";
     private static final String EXCHANGE = "bus";
     private static final String COLA = "usuarios";
     private static final String BINDING = "bus.compraventas.#";
@@ -25,7 +24,10 @@ public class ConsumidorEventosUsuarios {
 
     public void iniciar() throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(HOST);
+        factory.setHost(getEnv("RABBITMQ_HOST", "localhost"));
+        factory.setPort(Integer.parseInt(getEnv("RABBITMQ_PORT", "5672")));
+        factory.setUsername(getEnv("RABBITMQ_USERNAME", "guest"));
+        factory.setPassword(getEnv("RABBITMQ_PASSWORD", "guest"));
         connection = factory.newConnection();
         channel = connection.createChannel();
 
@@ -51,6 +53,11 @@ public class ConsumidorEventosUsuarios {
             }
         };
         channel.basicConsume(COLA, false, callback, ct -> {});
+    }
+
+    private String getEnv(String name, String defaultValue) {
+        String value = System.getenv(name);
+        return value == null || value.trim().isEmpty() ? defaultValue : value;
     }
 
     public void detener() throws Exception {

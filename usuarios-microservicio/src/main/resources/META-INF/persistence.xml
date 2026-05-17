@@ -25,7 +25,7 @@
 
             <property name="javax.persistence.jdbc.url"
 
-                value="jdbc:mysql://localhost:3306/productos_db?serverTimezone=Europe/Madrid" />
+                value="jdbc:mysql://localhost:3306/usuarios_db?serverTimezone=Europe/Madrid" />
 
             <property name="eclipselink.ddl-generation"
 				

@@ -1,5 +1,6 @@
 package arso.compraventas.adaptadores;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import arso.compraventas.adaptadores.dto.UsuarioNombreDTO;
 import arso.compraventas.adaptadores.retrofit.UsuariosRetrofitAPI;
@@ -13,9 +14,9 @@ public class UsuariosAdaptador implements UsuariosPuerto {
 
     private final UsuariosRetrofitAPI api;
 
-    public UsuariosAdaptador() {
+    public UsuariosAdaptador(@Value("${servicios.usuarios.base-url:http://localhost:8081/}") String baseUrl) {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://localhost:8081/") 
+                .baseUrl(baseUrl)
                 .addConverterFactory(JacksonConverterFactory.create())
                 .build();
         

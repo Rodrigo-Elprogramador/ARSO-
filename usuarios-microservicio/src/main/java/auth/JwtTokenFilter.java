@@ -1,7 +1,9 @@
 package auth;
 
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Priority;
@@ -16,11 +18,15 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.impl.DefaultClaims;
 
 @Provider
 @Priority(Priorities.AUTHENTICATION)
 public class JwtTokenFilter implements ContainerRequestFilter {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Context
     private ResourceInfo resourceInfo;
@@ -54,13 +60,7 @@ public class JwtTokenFilter implements ContainerRequestFilter {
                     .entity("No se adjunta el token correctamente").build());
         } else {
             try {
-                String[] parts = token.split("\\.");
-                Claims claims;
-                if (parts.length == 3) {
-                     claims = io.jsonwebtoken.Jwts.parser().parseClaimsJwt(parts[0] + "." + parts[1] + ".").getBody();
-                } else {
-                     claims = JwtUtils.validateToken(token);
-                }
+                Claims claims = readClaims(token);
                 
                 this.servletRequest.setAttribute("claims", claims);
 
@@ -86,5 +86,15 @@ public class JwtTokenFilter implements ContainerRequestFilter {
                         Response.status(Response.Status.UNAUTHORIZED).entity(e.getMessage()).build());
             }
         }
+    }
+
+    private Claims readClaims(String token) throws Exception {
+        String[] parts = token.split("\\.");
+        if (parts.length != 3) {
+            throw new IllegalArgumentException("Token JWT incorrecto");
+        }
+        byte[] payload = Base64.getUrlDecoder().decode(parts[1]);
+        Map<String, Object> values = objectMapper.readValue(payload, Map.class);
+        return new DefaultClaims(values);
     }
 }

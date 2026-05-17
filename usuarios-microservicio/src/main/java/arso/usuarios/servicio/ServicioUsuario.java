@@ -26,16 +26,16 @@ public class ServicioUsuario implements IServicioUsuario {
 
 	@Override
 	public String altaUsuario(String nombre, String apellidos, String email, String clave, LocalDate nacimiento, String telefono, String githubId) throws RepositorioException, EntidadNoEncontrada {
-		if(nombre == null || nombre.isBlank())
+		if(isBlank(nombre))
 			throw new IllegalArgumentException("nombre: no debe ser nulo ni vacio o solo espacios en blanco");
 
-		if(apellidos == null || apellidos.isBlank())
+		if(isBlank(apellidos))
 			throw new IllegalArgumentException("apellidos: no debe ser nulo ni vacio o solo espacios en blanco");
 
-		if(email == null || email.isBlank())
+		if(isBlank(email))
 			throw new IllegalArgumentException("email: no debe ser nulo ni vacio o solo espacios en blanco");
 
-		if(clave == null || clave.isBlank())
+		if(isBlank(clave))
 			throw new IllegalArgumentException("clave: no debe ser nulo ni vacio o solo espacios en blanco");
 
 		if(nacimiento == null || LocalDate.now().isAfter(LocalDate.now()))
@@ -44,7 +44,7 @@ public class ServicioUsuario implements IServicioUsuario {
 			throw new IllegalArgumentException("Ya existe una cuenta con este email");
 
 		Usuario usuario = new Usuario(nombre, email, apellidos, clave, nacimiento, telefono, false);
-		if (githubId != null && !githubId.isBlank()) {
+		if (!isBlank(githubId)) {
 			usuario.setGithubId(githubId);
 		}
 
@@ -56,25 +56,25 @@ public class ServicioUsuario implements IServicioUsuario {
 
 	@Override
 	public void modificarUsuario(String identificador, String nombre, String apellidos, String email, String clave, LocalDate nacimiento, String telefono, String githubId) throws RepositorioException, EntidadNoEncontrada {
-		if(identificador == null || identificador.isBlank())
+		if(isBlank(identificador))
 			throw new IllegalArgumentException("identificador: no debe ser nulo ni vacio o solo espacios en blanco");
 
 		Usuario usuario = repositorio.getById(identificador);
 
-		if(nombre != null && !nombre.isBlank())
+		if(!isBlank(nombre))
 			usuario.setNombre(nombre);
-		if(apellidos != null && !apellidos.isBlank())
+		if(!isBlank(apellidos))
 			usuario.setApellidos(apellidos);
-		if(email != null && !email.isBlank())
+		if(!isBlank(email))
 			usuario.setEmail(email);
-		if(clave != null && !clave.isBlank())
+		if(!isBlank(clave))
 			usuario.setClave(clave);
 		if(nacimiento != null)
 			if(LocalDate.now().isAfter(nacimiento))
 				usuario.setFecha_nacimiento(nacimiento);
-		if(telefono != null && !telefono.isBlank())
+		if(!isBlank(telefono))
 			usuario.setTelefono(telefono);
-		if(githubId != null && !githubId.isBlank())
+		if(!isBlank(githubId))
 			usuario.setGithubId(githubId);
 
 		repositorio.update(usuario);
@@ -83,10 +83,10 @@ public class ServicioUsuario implements IServicioUsuario {
 
 	@Override
 	public Usuario comprobarUsuario(String email, String clave) throws EntidadNoEncontrada, RepositorioException {
-		if(email == null || email.isBlank())
+		if(isBlank(email))
 			throw new IllegalArgumentException("email: no debe ser nulo ni vacio o solo espacios en blanco");
 
-		if(clave == null || clave.isBlank())
+		if(isBlank(clave))
 			throw new IllegalArgumentException("clave: no debe ser nulo ni vacio o solo espacios en blanco");
 
 		return repositorio.getByIdentificación(email, clave);
@@ -105,5 +105,9 @@ public class ServicioUsuario implements IServicioUsuario {
 	@Override
 	public List<Usuario> listarUsuarios() throws RepositorioException {
 	    return repositorio.getAll();
+	}
+
+	private boolean isBlank(String value) {
+		return value == null || value.trim().isEmpty();
 	}
 }

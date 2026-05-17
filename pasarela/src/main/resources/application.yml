@@ -5,13 +5,13 @@ zuul:
   routes:
     usuarios:
       path: /api/usuarios/**
-      url: http://localhost:8081/api/usuarios
+      url: ${USUARIOS_ROUTE_URL:http://localhost:8081/api/usuarios}
     productos:
       path: /api/productos/**
-      url: http://localhost:8082/api/productos
+      url: ${PRODUCTOS_ROUTE_URL:http://localhost:8082/api/productos}
     compraventas:
       path: /api/compraventas/**
-      url: http://localhost:8083/api/compraventas
+      url: ${COMPRAVENTAS_ROUTE_URL:http://localhost:8083/api/compraventas}
   sensitive-headers: ""
 
 spring:
@@ -20,8 +20,8 @@ spring:
       client:
         registration:
           github:
-            clientId: ${GITHUB_CLIENT_ID:}
-            clientSecret: ${GITHUB_CLIENT_SECRET:}
+            clientId: ${GITHUB_CLIENT_ID:docker-local-client-id}
+            clientSecret: ${GITHUB_CLIENT_SECRET:docker-local-client-secret}
 
 jwt:
   secret: clave

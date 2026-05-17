@@ -12,6 +12,9 @@ public class ProductoDTO implements Serializable{
 	private LocalDateTime fechaPublicacion;
 	private String categoria;
 	private int numVisualizaciones;
+	private String idVendedor;
+	private String recogida;
+	private boolean vendido;
 	
 	public ProductoDTO(String id, String titulo, double precio, Estado estado, LocalDateTime fechaPublicacion, String categoria,
 			int numVisualizaciones) {
@@ -63,6 +66,24 @@ public class ProductoDTO implements Serializable{
 	}
 	public void setNumVisualizaciones(int numVisualizaciones) {
 		this.numVisualizaciones = numVisualizaciones;
+	}
+	public String getIdVendedor() {
+		return idVendedor;
+	}
+	public void setIdVendedor(String idVendedor) {
+		this.idVendedor = idVendedor;
+	}
+	public String getRecogida() {
+		return recogida;
+	}
+	public void setRecogida(String recogida) {
+		this.recogida = recogida;
+	}
+	public boolean isVendido() {
+		return vendido;
+	}
+	public void setVendido(boolean vendido) {
+		this.vendido = vendido;
 	}
 	
 	@Override

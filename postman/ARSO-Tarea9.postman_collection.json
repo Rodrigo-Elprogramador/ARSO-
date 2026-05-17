@@ -1,0 +1,204 @@
+{
+  "info": {
+    "name": "ARSO Tarea 9 - Docker",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 Login vendedor",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('login vendedor OK', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.environment.set('sellerToken', json.token);",
+              "pm.environment.set('sellerId', json.identificador);",
+              "pm.environment.set('token', json.token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"juan@example.com\",\n  \"password\": \"1234\"\n}" },
+        "url": "{{baseUrl}}/auth/login"
+      }
+    },
+    {
+      "name": "02 Login comprador",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('login comprador OK', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.environment.set('buyerToken', json.token);",
+              "pm.environment.set('buyerId', json.identificador);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"maria@example.com\",\n  \"password\": \"1234\"\n}" },
+        "url": "{{baseUrl}}/auth/login"
+      }
+    },
+    {
+      "name": "03 Login administrador",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('login administrador OK', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.environment.set('adminToken', json.token);",
+              "pm.environment.set('adminId', json.identificador);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin\"\n}" },
+        "url": "{{baseUrl}}/auth/login"
+      }
+    },
+    {
+      "name": "04 Recuperar usuario autenticado",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+        "url": "{{baseUrl}}/api/usuarios/{{sellerId}}"
+      }
+    },
+    {
+      "name": "05 Categorias raiz publicas",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('categorias OK', function () { pm.response.to.have.status(200); });",
+              "const list = pm.response.json();",
+              "if (Array.isArray(list) && list.length > 0) pm.environment.set('categoryId', list[0].id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/productos/categorias" }
+    },
+    {
+      "name": "06 Alta producto como propietario",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('producto creado', function () { pm.response.to.have.status(201); });",
+              "const location = pm.response.headers.get('Location');",
+              "if (location) pm.environment.set('productId', location.split('/').pop());"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Producto Docker {{$timestamp}}\",\n  \"descripcion\": \"Producto creado desde la coleccion Postman de Tarea 9\",\n  \"precio\": 25.5,\n  \"estado\": \"BUEN_ESTADO\",\n  \"idCategoria\": \"{{categoryId}}\",\n  \"disponible\": true,\n  \"idVendedor\": \"{{sellerId}}\"\n}"
+        },
+        "url": "{{baseUrl}}/api/productos"
+      }
+    },
+    {
+      "name": "07 Asignar recogida",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+        "url": "{{baseUrl}}/api/productos/{{productId}}/recogida?longitud=1.165&latitud=38.016&descripcion=Campus%20Espinardo"
+      }
+    },
+    {
+      "name": "08 Recuperar producto publico",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/productos/{{productId}}" }
+    },
+    {
+      "name": "09 Añadir visualizacion publica",
+      "request": { "method": "PUT", "url": "{{baseUrl}}/api/productos/{{productId}}/visualizacion" }
+    },
+    {
+      "name": "10 Buscar productos publico",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/productos/buscar?page=0&size=5" }
+    },
+    {
+      "name": "11 Comprar producto como comprador",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('compraventa creada', function () { pm.response.to.have.status(201); });",
+              "const location = pm.response.headers.get('Location');",
+              "if (location) pm.environment.set('purchaseId', location.split('/').pop());"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{buyerToken}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"idProducto\": \"{{productId}}\",\n  \"idComprador\": \"{{buyerId}}\"\n}" },
+        "url": "{{baseUrl}}/api/compraventas"
+      }
+    },
+    {
+      "name": "12 Compras del comprador",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{buyerToken}}" }],
+        "url": "{{baseUrl}}/api/compraventas/compras/{{buyerId}}"
+      }
+    },
+    {
+      "name": "13 Ventas del vendedor",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+        "url": "{{baseUrl}}/api/compraventas/ventas/{{sellerId}}"
+      }
+    },
+    {
+      "name": "14 Compraventas entre usuarios como admin",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+        "url": "{{baseUrl}}/api/compraventas/compraventas?idComprador={{buyerId}}&idVendedor={{sellerId}}"
+      }
+    },
+    {
+      "name": "15 Producto queda vendido por evento",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/productos/{{productId}}" }
+    }
+  ]
+}

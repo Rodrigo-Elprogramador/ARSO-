@@ -1,5 +1,6 @@
 package arso.compraventas.adaptadores;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import arso.compraventas.adaptadores.dto.ProductoInfoDTO;
 import arso.compraventas.adaptadores.retrofit.ProductosRetrofitAPI;
@@ -13,9 +14,9 @@ public class ProductosAdaptador implements ProductosPuerto {
 
     private final ProductosRetrofitAPI api;
 
-    public ProductosAdaptador() {
+    public ProductosAdaptador(@Value("${servicios.productos.base-url:http://localhost:8082/}") String baseUrl) {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://localhost:8080/") 
+                .baseUrl(baseUrl)
                 .addConverterFactory(JacksonConverterFactory.create())
                 .build();
         

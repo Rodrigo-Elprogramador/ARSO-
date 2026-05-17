@@ -1,6 +1,6 @@
-C:\Users\Juanpe\Documents\GitHub\ARSO-\pasarela\src\main\java\pasarela\filter\JwtValidationFilter.java
-C:\Users\Juanpe\Documents\GitHub\ARSO-\pasarela\src\main\java\pasarela\retrofit\UsuariosRestClient.java
-C:\Users\Juanpe\Documents\GitHub\ARSO-\pasarela\src\main\java\pasarela\config\SecurityConfig.java
-C:\Users\Juanpe\Documents\GitHub\ARSO-\pasarela\src\main\java\pasarela\config\SecuritySuccessHandler.java
-C:\Users\Juanpe\Documents\GitHub\ARSO-\pasarela\src\main\java\pasarela\PasarelaApplication.java
-C:\Users\Juanpe\Documents\GitHub\ARSO-\pasarela\src\main\java\pasarela\controller\AuthController.java
+C:\Users\juanp\OneDrive\Documents\GitHub\ARSO-\pasarela\src\main\java\pasarela\config\SecuritySuccessHandler.java
+C:\Users\juanp\OneDrive\Documents\GitHub\ARSO-\pasarela\src\main\java\pasarela\controller\AuthController.java
+C:\Users\juanp\OneDrive\Documents\GitHub\ARSO-\pasarela\src\main\java\pasarela\PasarelaApplication.java
+C:\Users\juanp\OneDrive\Documents\GitHub\ARSO-\pasarela\src\main\java\pasarela\retrofit\UsuariosRestClient.java
+C:\Users\juanp\OneDrive\Documents\GitHub\ARSO-\pasarela\src\main\java\pasarela\filter\JwtValidationFilter.java
+C:\Users\juanp\OneDrive\Documents\GitHub\ARSO-\pasarela\src\main\java\pasarela\config\SecurityConfig.java

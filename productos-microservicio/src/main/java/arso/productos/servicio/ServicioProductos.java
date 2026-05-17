@@ -79,7 +79,8 @@ public class ServicioProductos implements IServicioProductos, IEventosCompravent
 		
 		LocalDateTime fecha = LocalDateTime.now();
 		
-		Producto producto = new Producto(titulo, descripcion, precio, estado, fecha, categoria, 0, disponible, null, vendedor);
+		Producto producto = new Producto(titulo, descripcion, precio, estado, fecha, categoria, 0, disponible,
+				new LugarRecogida("Sin asignar", 0.0, 0.0), vendedor);
 		
 		Producto guardado = repositorio.save(producto);
 		
@@ -90,7 +91,7 @@ public class ServicioProductos implements IServicioProductos, IEventosCompravent
 	@Override
 	public void asignarPuntoRecogida(String id, double longitud, double latitud, String descripcion) throws RepositorioException, EntidadNoEncontrada{
 		
-		if(id == null || id.isBlank())
+		if(isBlank(id))
 			throw new IllegalArgumentException("identificador: no debe ser nulo ni vacio o solo espacios en blanco");
 		if(descripcion == null || descripcion.isEmpty())
 			throw new IllegalArgumentException("descripcion: no debe ser nulo ni vacio");
@@ -109,7 +110,7 @@ public class ServicioProductos implements IServicioProductos, IEventosCompravent
 
 	@Override
 	public Producto recuperarProducto(String id) throws RepositorioException, EntidadNoEncontrada {
-	    if (id == null || id.isBlank()) {
+	    if (isBlank(id)) {
 	        throw new IllegalArgumentException("El identificador no puede ser nulo o vacío");
 	    }
 
@@ -119,7 +120,7 @@ public class ServicioProductos implements IServicioProductos, IEventosCompravent
 	@Override
 	public void modificarProducto(String id, double precio, String descripcion) throws RepositorioException, EntidadNoEncontrada{
 		
-		if(id == null || id.isBlank())
+		if(isBlank(id))
 			throw new IllegalArgumentException("identificador: no debe ser nulo ni vacio o solo espacios en blanco");
 		
 		Producto producto = repositorio.findById(id).orElseThrow(() -> new EntidadNoEncontrada("Producto no encontrado"));
@@ -138,7 +139,7 @@ public class ServicioProductos implements IServicioProductos, IEventosCompravent
 
 	@Override
 	public void addVisualizacion(String id) throws RepositorioException, EntidadNoEncontrada{
-		if(id == null || id.isBlank())
+		if(isBlank(id))
 			throw new IllegalArgumentException("identificador: no debe ser nulo ni vacio o solo espacios en blanco");
 		
 		Producto producto = repositorio.findById(id).orElseThrow(() -> new EntidadNoEncontrada("Producto no encontrado"));
@@ -168,7 +169,7 @@ public class ServicioProductos implements IServicioProductos, IEventosCompravent
 	}
 
 	private ProductoDTO transformToDTO(Producto producto) {
-	    return new ProductoDTO(
+	    ProductoDTO dto = new ProductoDTO(
 	        producto.getId(), 
 	        producto.getTitulo(), 
 	        producto.getPrecio(), 
@@ -177,5 +178,13 @@ public class ServicioProductos implements IServicioProductos, IEventosCompravent
 	        producto.getCategoria() != null ? producto.getCategoria().getNombre() : null, 
 	        producto.getVisualizaciones()
 	    );
+	    dto.setIdVendedor(producto.getVendedor() != null ? producto.getVendedor().getId() : null);
+	    dto.setRecogida(producto.getRecogida() != null ? producto.getRecogida().getEspecificacion() : null);
+	    dto.setVendido(producto.isVendido());
+	    return dto;
+	}
+
+	private boolean isBlank(String value) {
+		return value == null || value.trim().isEmpty();
 	}
 }

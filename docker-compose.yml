@@ -1,0 +1,137 @@
+name: arso
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: arso-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      TZ: Europe/Madrid
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p1234"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  mongodb:
+    image: mongo:6
+    container_name: arso-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: arso-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  usuarios:
+    build:
+      context: ./usuarios-microservicio
+    container_name: arso-usuarios
+    environment:
+      JPA_JDBC_URL: jdbc:mysql://mysql:3306/usuarios_db?serverTimezone=Europe/Madrid&allowPublicKeyRetrieval=true&useSSL=false
+      JPA_JDBC_USER: root
+      JPA_JDBC_PASSWORD: 1234
+      JPA_JDBC_DRIVER: com.mysql.cj.jdbc.Driver
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+    ports:
+      - "8081:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  productos:
+    build:
+      context: ./productos-microservicio
+    container_name: arso-productos
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/productos_db?serverTimezone=Europe/Madrid&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    ports:
+      - "8082:8082"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  compraventas:
+    build:
+      context: ./compraventas-microservicio
+    container_name: arso-compraventas
+    environment:
+      SERVER_PORT: 8083
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/compraventas
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      PRODUCTOS_BASE_URL: http://productos:8082/
+      USUARIOS_BASE_URL: http://usuarios:8080/
+    ports:
+      - "8083:8083"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      usuarios:
+        condition: service_started
+      productos:
+        condition: service_started
+
+  pasarela:
+    build:
+      context: ./pasarela
+    container_name: arso-pasarela
+    environment:
+      USUARIOS_ROUTE_URL: http://usuarios:8080/api/usuarios
+      PRODUCTOS_ROUTE_URL: http://productos:8082/api/productos
+      COMPRAVENTAS_ROUTE_URL: http://compraventas:8083/api/compraventas
+      USUARIOS_BASE_URL: http://usuarios:8080/api/
+      JWT_SECRET: clave
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-docker-local-client-id}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-docker-local-client-secret}
+    ports:
+      - "8080:8080"
+    depends_on:
+      usuarios:
+        condition: service_started
+      productos:
+        condition: service_started
+      compraventas:
+        condition: service_started
+
+volumes:
+  mysql-data:
+  mongo-data:

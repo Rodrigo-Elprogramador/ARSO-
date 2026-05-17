@@ -9,10 +9,11 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+
+import org.hibernate.annotations.GenericGenerator;
 
 import repositorio.Identificable;
 
@@ -20,7 +21,8 @@ import repositorio.Identificable;
 //@Table (name = "producto")
 public class Producto implements Identificable{
 	@Id
-	@GeneratedValue(strategy = GenerationType.TABLE) //anotación JPA
+	@GeneratedValue(generator = "uuid")
+	@GenericGenerator(name = "uuid", strategy = "uuid2")
 	private String id;
 	private String titulo;
 	private String descripcion;
@@ -172,3 +174,4 @@ public class Producto implements Identificable{
 	}
     
 }
+
