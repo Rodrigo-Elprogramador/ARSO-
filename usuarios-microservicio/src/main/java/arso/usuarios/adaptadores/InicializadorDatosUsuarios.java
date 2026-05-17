@@ -7,6 +7,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
+import arso.usuarios.modelo.Usuario;
 import utils.EntityManagerHelper;
 
 @WebListener
@@ -22,9 +23,9 @@ public class InicializadorDatosUsuarios implements ServletContextListener {
             }
 
             em.getTransaction().begin();
-            persistir(em, "1", "Juan", "Perez", "juan@example.com", "1234", false);
-            persistir(em, "2", "Maria", "Lopez", "maria@example.com", "1234", false);
-            persistir(em, "3", "Admin", "ARSO", "admin@example.com", "admin", true);
+            persistir(em, "Juan", "Perez", "juan@example.com", "1234", false);
+            persistir(em, "Maria", "Lopez", "maria@example.com", "1234", false);
+            persistir(em, "Admin", "ARSO", "admin@example.com", "admin", true);
             em.getTransaction().commit();
             System.out.println("[Datos] Usuarios iniciales creados.");
         } catch (Exception e) {
@@ -37,20 +38,11 @@ public class InicializadorDatosUsuarios implements ServletContextListener {
         }
     }
 
-    private void persistir(EntityManager em, String id, String nombre, String apellidos, String email, String clave,
+    private void persistir(EntityManager em, String nombre, String apellidos, String email, String clave,
             boolean administrador) {
-        em.createNativeQuery("INSERT INTO usuario "
-                + "(id, nombre, apellidos, email, clave, fecha_nacimiento, telefono, administrador, contador_compras, contador_ventas) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0)")
-                .setParameter(1, id)
-                .setParameter(2, nombre)
-                .setParameter(3, apellidos)
-                .setParameter(4, email)
-                .setParameter(5, clave)
-                .setParameter(6, java.sql.Date.valueOf(LocalDate.of(1990, 1, 1)))
-                .setParameter(7, "600000000")
-                .setParameter(8, administrador)
-                .executeUpdate();
+        Usuario usuario = new Usuario(nombre, email, apellidos, clave, LocalDate.of(1990, 1, 1), "600000000",
+                administrador);
+        em.persist(usuario);
     }
 
     @Override

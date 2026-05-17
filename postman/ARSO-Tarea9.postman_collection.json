@@ -5,6 +5,91 @@
   },
   "item": [
     {
+      "name": "00 Alta usuario dinamico",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const email = `postman${Date.now()}@example.com`;",
+              "pm.environment.set('newUserEmail', email);",
+              "pm.environment.set('newUserPassword', '1234');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('usuario creado', function () { pm.response.to.have.status(201); });",
+              "const location = pm.response.headers.get('Location');",
+              "if (location) pm.environment.set('newUserId', location.split('/').pop());"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Usuario\",\n  \"apellidos\": \"Postman\",\n  \"email\": \"{{newUserEmail}}\",\n  \"clave\": \"{{newUserPassword}}\",\n  \"fechaNacimiento\": \"1990-01-01\",\n  \"telefono\": \"600000001\"\n}"
+        },
+        "url": "{{baseUrl}}/api/usuarios"
+      }
+    },
+    {
+      "name": "00 Login usuario dinamico",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('login usuario dinamico OK', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.environment.set('newUserToken', json.token);",
+              "pm.environment.set('newUserId', json.identificador);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{newUserEmail}}\",\n  \"password\": \"{{newUserPassword}}\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/login"
+      }
+    },
+    {
+      "name": "00 Recuperar usuario dinamico con JWT",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{newUserToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/usuarios/{{newUserId}}"
+      }
+    },
+    {
       "name": "01 Login vendedor",
       "event": [
         {
@@ -23,8 +108,16 @@
       ],
       "request": {
         "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\n  \"email\": \"juan@example.com\",\n  \"password\": \"1234\"\n}" },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"juan@example.com\",\n  \"password\": \"1234\"\n}"
+        },
         "url": "{{baseUrl}}/auth/login"
       }
     },
@@ -46,8 +139,16 @@
       ],
       "request": {
         "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\n  \"email\": \"maria@example.com\",\n  \"password\": \"1234\"\n}" },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"maria@example.com\",\n  \"password\": \"1234\"\n}"
+        },
         "url": "{{baseUrl}}/auth/login"
       }
     },
@@ -69,8 +170,16 @@
       ],
       "request": {
         "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin\"\n}" },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin\"\n}"
+        },
         "url": "{{baseUrl}}/auth/login"
       }
     },
@@ -78,9 +187,108 @@
       "name": "04 Recuperar usuario autenticado",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sellerToken}}"
+          }
+        ],
         "url": "{{baseUrl}}/api/usuarios/{{sellerId}}"
       }
+    },
+    {
+      "name": "04B Usuarios con cookie JWT vacia devuelve 401",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "jwt=",
+            "type": "text"
+          }
+        ],
+        "url": "{{baseUrl}}/api/usuarios"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('cookie JWT vacia rechazada', function () { pm.response.to.have.status(401); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04C Usuarios con token invalido devuelve 401",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer tokeninvalido",
+            "type": "text"
+          }
+        ],
+        "url": "{{baseUrl}}/api/usuarios"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('token invalido rechazado', function () { pm.response.to.have.status(401); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04D Modificar usuario ajeno devuelve 403",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": "{{baseUrl}}/api/usuarios/{{buyerId}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{sellerToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Intento no permitido\",\n  \"apellidos\": \"Lopez\",\n  \"email\": \"maria@example.com\",\n  \"clave\": \"1234\",\n  \"telefono\": \"600000000\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('no permite modificar otro usuario', function () { pm.response.to.have.status(403); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     },
     {
       "name": "05 Categorias raiz publicas",
@@ -97,7 +305,10 @@
           }
         }
       ],
-      "request": { "method": "GET", "url": "{{baseUrl}}/api/productos/categorias" }
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/productos/categorias"
+      }
     },
     {
       "name": "06 Alta producto como propietario",
@@ -117,8 +328,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{sellerToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sellerToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -128,24 +345,82 @@
       }
     },
     {
+      "name": "06B Alta producto con vendedor distinto devuelve 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": "{{baseUrl}}/api/productos",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{sellerToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Producto no permitido\",\n  \"descripcion\": \"Debe fallar\",\n  \"precio\": 10,\n  \"estado\": \"NUEVO\",\n  \"idCategoria\": \"{{categoryId}}\",\n  \"disponible\": true,\n  \"idVendedor\": \"{{buyerId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('vendedor distinto al token prohibido', function () { pm.response.to.have.status(403); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
       "name": "07 Asignar recogida",
       "request": {
         "method": "PUT",
-        "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sellerToken}}"
+          }
+        ],
         "url": "{{baseUrl}}/api/productos/{{productId}}/recogida?longitud=1.165&latitud=38.016&descripcion=Campus%20Espinardo"
       }
     },
     {
       "name": "08 Recuperar producto publico",
-      "request": { "method": "GET", "url": "{{baseUrl}}/api/productos/{{productId}}" }
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/productos/{{productId}}"
+      }
     },
     {
       "name": "09 Añadir visualizacion publica",
-      "request": { "method": "PUT", "url": "{{baseUrl}}/api/productos/{{productId}}/visualizacion" }
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/productos/{{productId}}/visualizacion"
+      }
     },
     {
       "name": "10 Buscar productos publico",
-      "request": { "method": "GET", "url": "{{baseUrl}}/api/productos/buscar?page=0&size=5" }
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/productos/buscar?page=0&size=5"
+      }
     },
     {
       "name": "11 Comprar producto como comprador",
@@ -165,10 +440,19 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{buyerToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{buyerToken}}"
+          }
         ],
-        "body": { "mode": "raw", "raw": "{\n  \"idProducto\": \"{{productId}}\",\n  \"idComprador\": \"{{buyerId}}\"\n}" },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idProducto\": \"{{productId}}\",\n  \"idComprador\": \"{{buyerId}}\"\n}"
+        },
         "url": "{{baseUrl}}/api/compraventas"
       }
     },
@@ -176,15 +460,54 @@
       "name": "12 Compras del comprador",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Authorization", "value": "Bearer {{buyerToken}}" }],
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{buyerToken}}"
+          }
+        ],
         "url": "{{baseUrl}}/api/compraventas/compras/{{buyerId}}"
       }
+    },
+    {
+      "name": "12B Ver compras ajenas devuelve 403",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/compraventas/compras/{{buyerId}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{sellerToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('compras ajenas prohibidas', function () { pm.response.to.have.status(403); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     },
     {
       "name": "13 Ventas del vendedor",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }],
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{sellerToken}}"
+          }
+        ],
         "url": "{{baseUrl}}/api/compraventas/ventas/{{sellerId}}"
       }
     },
@@ -192,13 +515,96 @@
       "name": "14 Compraventas entre usuarios como admin",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
         "url": "{{baseUrl}}/api/compraventas/compraventas?idComprador={{buyerId}}&idVendedor={{sellerId}}"
       }
     },
     {
+      "name": "14B Compraventas entre usuarios como usuario devuelve 403",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/compraventas/compraventas?idComprador={{buyerId}}&idVendedor={{sellerId}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{sellerToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('solo admin puede consultar compraventas entre usuarios', function () { pm.response.to.have.status(403); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
       "name": "15 Producto queda vendido por evento",
-      "request": { "method": "GET", "url": "{{baseUrl}}/api/productos/{{productId}}" }
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/productos/{{productId}}"
+      }
+    },
+    {
+      "name": "16 Comprar producto vendido devuelve error",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": "{{baseUrl}}/api/compraventas",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{buyerToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idProducto\": \"{{productId}}\",\n  \"idComprador\": \"{{buyerId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('no permite comprar dos veces el mismo producto', function () {",
+              "  pm.expect([400, 409]).to.include(pm.response.code);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     }
   ]
 }
